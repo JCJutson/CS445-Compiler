@@ -1,0 +1,313 @@
+%{
+	#define YYDEBUG 1
+	#include<stdio.h>
+	#include"scanType.h"
+        extern FILE *yyin;
+	extern char *yytext;
+	extern char *yyfilename;
+	extern int lineNum;
+	void yyerror(char *s)
+	{
+		printf("ERROR(%d): Invalid or misplaced input character: %s at '%s'\n",
+			lineNum, s, yytext);
+	}
+%}
+
+%union {
+  TokenData* tokenData;
+}
+
+%token NUMCONST  
+%token CHARCONST
+%token BOOLCONST
+%token AND
+%token OR
+%token NOT
+%token NOTEQ
+%token MULASS
+%token INC
+%token ADDASS
+%token DEC
+%token SUBASS
+%token DIVASS
+%token LESSEQ
+%token EQ
+%token GRTEQ
+%token ID 
+%token RECORD
+%token INT
+%token BOOL
+%token CHAR
+%token STATIC
+%token IF
+%token WHILE
+%token BREAK
+%token ELSE
+%token RETURN
+
+
+%%
+
+declarationList
+: declarationList declaration
+| declaration
+;
+
+declaration
+: varDeclaration
+| funDeclaration
+| recDeclaration
+;
+
+recDeclaration
+: RECORD ID '{' localDeclarations '}'
+;
+
+varDeclaration
+: typeSpecifier varDecList ';'
+;
+
+scopedVarDeclaration
+: scopedTypeSpecificer varDecList ';'
+;
+
+varDecList
+: varDecList ',' varDecInitialize 
+| varDecInitialize
+;
+
+varDecInitialize
+: varDecId
+| varDecId ':' simpleExpression
+;
+
+varDecId
+: ID
+| ID '[' NUMCONST ']'
+;
+
+scopedTypeSpecificer
+: STATIC typeSpecifier
+| typeSpecifier
+;
+
+typeSpecifier
+: returnTypeSpecifier
+| rectype
+;
+
+returnTypeSpecifier
+: INT
+| BOOL
+| CHAR
+;
+
+rectype
+: ID
+;
+
+funDeclaration
+: typeSpecifier ID '(' params ')' statement
+| ID '(' params ')' statement
+;
+
+params
+: paramList
+| 
+;
+
+paramList
+: paramList ';' paramTypeList
+| paramTypeList
+;
+
+paramTypeList
+: typeSpecifier paramIdList
+;
+
+paramIdList
+: paramIdList ',' paramId
+| paramId
+;
+
+paramId
+: ID
+| ID '[' ']'
+;
+
+statement
+: matchedStatement
+| unmatchedStatement
+;
+
+matchedStatement
+: expressionStatement
+| compoundStatement
+| returnStatement
+| breakStatement
+| matchedSelectionStatement
+| matchedIterationStatement
+;
+
+unmatchedStatement
+: unmatchedSelectionStatement
+| unmatchedIterationStatement
+;
+
+compoundStatement
+: '{' localDeclarations statementList '}'
+;
+
+localDeclarations
+: localDeclarations scopedVarDeclaration
+|
+;
+
+statementList
+: statementList statement 
+|
+;
+
+expressionStatement
+: expression ';'
+| ';'
+;
+
+matchedSelectionStatement
+: IF '(' simpleExpression ')' matchedStatement ELSE matchedStatement
+;
+
+unmatchedSelectionStatement
+: IF '(' simpleExpression ')' matchedStatement
+| IF '(' simpleExpression ')' unmatchedStatement 
+| IF '(' simpleExpression ')' matchedStatement ELSE unmatchedStatement
+;
+
+matchedIterationStatement
+: WHILE '(' simpleExpression ')' matchedStatement
+;
+
+unmatchedIterationStatement
+: WHILE '(' simpleExpression ')' unmatchedStatement
+;
+
+returnStatement
+: RETURN ';'
+| RETURN expression ';'
+;
+
+breakStatement
+: BREAK ';'
+; 
+
+expression
+: mutable '=' expression
+| mutable ADDASS expression
+| mutable SUBASS expression
+| mutable MULASS expression
+| mutable DIVASS expression
+| mutable INC
+| mutable DEC
+| simpleExpression
+;
+
+simpleExpression
+: simpleExpression OR andExpression
+| andExpression
+;
+
+andExpression
+: andExpression AND unaryRelExpression
+| unaryRelExpression
+;
+
+unaryRelExpression
+: NOT unaryRelExpression
+| relExpression
+;
+
+relExpression
+: sumExpression relop sumExpression
+| sumExpression
+;
+
+relop
+: LESSEQ
+| '<'
+| '>'
+| GRTEQ
+| EQ
+| NOTEQ
+;
+
+sumExpression
+: sumExpression sumop term
+| term
+;
+
+sumop
+: '+'
+| '-'
+;
+
+term
+: term mulop unaryExpression
+| unaryExpression
+;
+
+mulop
+: '*'
+| '/'
+| '%'
+;
+
+unaryExpression
+: unaryop unaryExpression
+| factor
+;
+
+unaryop
+: '-'
+| '*'
+| '?'
+;
+
+factor
+: immutable
+| mutable
+;
+
+mutable
+: ID
+| mutable '[' expression ']'
+| mutable '.' ID
+;
+
+immutable
+: '(' expression ')'
+| call
+| constant
+;
+
+call
+: ID '(' args ')'
+;
+
+args
+: argList
+| 
+;
+
+argList
+: argList ',' expression
+| expression
+;
+
+constant
+: NUMCONST
+| CHARCONST
+| BOOLCONST
+;
+
+%%
+

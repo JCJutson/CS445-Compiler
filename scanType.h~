@@ -1,0 +1,11 @@
+#ifndef SCANTYPEH
+#define SCANTYPEH
+struct TokenData {
+  int tokenClass;
+  int lineNum;
+  char* input;
+  char* tokenName;
+  int value;
+};
+#endif
+

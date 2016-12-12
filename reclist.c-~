@@ -1,0 +1,4 @@
+record yes {} 
+record no {}
+record three{ int x; }
+record four { int x; int y:5; int z; } 

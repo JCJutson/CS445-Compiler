@@ -1,0 +1,23 @@
+
+dog(){
+        outputc('d');
+}
+
+
+
+cat(){
+        return dog();
+}
+
+
+
+
+
+
+
+main(){
+	cat();
+	outputc('o');
+	outputc('k');
+	outnl();
+}
